@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocateUMN</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="public/index.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <img src="assets/logo.png" alt="Logo" class="logo">
+      <h1 class="title">LocateUMN</h1>
+    </header>
+
+    <div class="card">
+      <button class="btn btn-primary" id="btn-locate">
+        📍 Lokasi Saya
+      </button>
+      <button class="btn" id="btn-search">
+        🔍 Cari Lokasi
+      </button>
+    </div>
+
+    <!-- ====== KOMPAS CARD ====== -->
+    <div class="card" id="compass-card">
+      <h3>🧭 Kompas Arah</h3>
+      <div id="compass-container">
+        <div id="compass">
+          <div class="compass-ring">
+            <span class="dir-label north">N</span>
+            <span class="dir-label east">E</span>
+            <span class="dir-label south">S</span>
+            <span class="dir-label west">W</span>
+          </div>
+          <div class="compass-needle"></div>
+          <div class="compass-target-indicator" style="display: none;"></div>
+        </div>
+        <div id="compass-heading">0°</div>
+        <div id="compass-direction">Utara</div>
+        <div id="compass-target-info" style="display: none;"></div>
+      </div>
+    </div>
+    <!-- ====== END KOMPAS ====== -->
+
+    <div id="output" class="output">
+      Klik tombol untuk memulai
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; margin-top: -10px;">
+      <button class="btn btn-small" id="btn-admin">⚙️ Admin Only</button>
+    </div>
+  </div>
+
+  <!-- Modal password -->
+  <div id="password-overlay" class="overlay" style="display: none;">
+    <div class="modal">
+      <h3>Masuk Admin</h3>
+      <input type="password" id="password-input" class="password-input" placeholder="Password">
+      <div class="flex-row" style="justify-content: flex-end;">
+        <button class="btn btn-small" id="btn-cancel">Batal</button>
+        <button class="btn btn-small btn-primary" id="btn-login">Masuk</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daftar lokasi untuk "Cari Lokasi" -->
+  <div id="loc-list-overlay" class="overlay" style="display: none;">
+    <div class="modal" style="max-height: 80vh; overflow-y: auto;">
+      <h3>Pilih Lokasi</h3>
+      <div id="loc-list" class="flex-column" style="gap: 8px;"></div>
+      <button class="btn btn-small" id="btn-close-list">Tutup</button>
+    </div>
+  </div>
+
+  <script src="public/app.js"></script>
+  <script src="public/compass.js"></script>
+</body>
+</html>
