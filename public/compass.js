@@ -1,15 +1,16 @@
 /**********************************************
- * LocateUMN - Kompas Arah Realtime
- * Menggunakan DeviceOrientation API
+ * LocateUMN - Kompas Arah Realtime (v2)
+ * Mendukung: iOS (dengan izin), Android (absolute),
+ *             fallback untuk perangkat tanpa magnetometer
  **********************************************/
 const Compass = {
-  heading: 0,               // derajat, 0 = utara
-  target: null,             // { name, lat, lng }
-  userPosition: null,       // { lat, lng }
+  heading: 0,
+  target: null,
+  userPosition: null,
   supported: false,
+  absoluteMode: false,   // apakah heading terhadap utara magnetik
 
   init() {
-    // Elemen DOM
     this.needle = document.querySelector('.compass-needle');
     this.headingEl = document.getElementById('compass-heading');
     this.directionEl = document.getElementById('compass-direction');
@@ -17,51 +18,88 @@ const Compass = {
     this.targetIndicator = document.querySelector('.compass-target-indicator');
     this.compassCard = document.getElementById('compass-card');
 
-    // Cek dukungan DeviceOrientation
-    if (window.DeviceOrientationEvent) {
-      this.supported = true;
-      window.addEventListener('deviceorientation', (e) => this.handleOrientation(e), true);
+    // Cek tipe event yang didukung
+    if (typeof DeviceOrientationEvent !== 'undefined') {
+      // iOS 13+ butuh requestPermission
+      if (DeviceOrientationEvent.requestPermission) {
+        this.showPermissionButton();
+      } else {
+        // Android / desktop / iOS lama: langsung pasang listener
+        this.startListening();
+      }
     } else {
-      this.showFallback();
-    }
-
-    // Ambil elemen fallback jika belum ada
-    this.fallbackEl = document.getElementById('compass-fallback');
-    if (!this.fallbackEl && !this.supported) {
-      const p = document.createElement('p');
-      p.id = 'compass-fallback';
-      p.textContent = 'Kompas tidak didukung di perangkat ini';
-      this.compassCard.appendChild(p);
-      this.fallbackEl = p;
+      this.showFallback('Kompas tidak didukung di perangkat ini.');
     }
   },
 
-  showFallback() {
-    if (this.needle) this.needle.style.display = 'none';
-    if (this.headingEl) this.headingEl.textContent = '--';
-    if (this.directionEl) this.directionEl.textContent = 'Tidak tersedia';
+  // ========== TAMPILKAN TOMBOL MINTA IZIN (iOS) ==========
+  showPermissionButton() {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-small btn-primary';
+    btn.textContent = '🧭 Aktifkan Kompas';
+    btn.style.margin = '8px auto';
+    btn.addEventListener('click', async () => {
+      try {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission === 'granted') {
+          btn.remove();
+          this.startListening();
+        } else {
+          this.showFallback('Izin kompas ditolak.');
+        }
+      } catch (err) {
+        this.showFallback('Gagal meminta izin kompas.');
+      }
+    });
+    this.compassCard.appendChild(btn);
   },
 
-  handleOrientation(event) {
+  // ========== MULAI MENDENGARKAN EVENT ==========
+  startListening() {
+    // Prioritaskan event absolute (tersedia di Chrome Android 78+)
+    if ('ondeviceorientationabsolute' in window) {
+      window.addEventListener('deviceorientationabsolute', (e) => this.handleOrientation(e, true), true);
+      // juga dengarkan event biasa sebagai fallback
+      window.addEventListener('deviceorientation', (e) => this.handleOrientation(e, false), true);
+    } else {
+      window.addEventListener('deviceorientation', (e) => this.handleOrientation(e, null), true);
+    }
+    // Anggap sementara supported = true, akan di-update di handler
+    this.supported = true;
+    // Hapus fallback sebelumnya jika ada
+    const fb = document.getElementById('compass-fallback');
+    if (fb) fb.remove();
+  },
+
+  // ========== HANDLER ORIENTASI ==========
+  handleOrientation(event, isAbsolute) {
+    // Jika ini event biasa dan kita sudah menerima event absolute, abaikan
+    if (this.absoluteMode && isAbsolute === false) return;
+
     let rawHeading = null;
 
-    // iOS: webkitCompassHeading sudah magnetik utara (0-360)
+    // 1. iOS: webkitCompassHeading (sudah magnetik utara, 0-360)
     if (event.webkitCompassHeading !== undefined) {
       rawHeading = event.webkitCompassHeading;
+      this.absoluteMode = true;
     }
-    // Android: absolute orientation
-    else if (event.absolute === true) {
-      // alpha: rotasi sekitar Z (0 = utara, searah jarum? Banyak referensi: heading = (360 - alpha) % 360)
-      rawHeading = (360 - event.alpha) % 360;
+    // 2. Event absolute (deviceorientationabsolute) atau deviceorientation dengan absolute=true
+    else if (isAbsolute === true || event.absolute === true) {
+      // alpha: 0 = utara (seharusnya), tapi di Android alpha biasanya 0 di utara, tapi rotasi searah jarum?
+      // Standar: alpha adalah rotasi perangkat di sekitar sumbu Z, 0 = arah utara, 90 = timur, dll.
+      // Jadi heading = alpha (0-360)
+      rawHeading = event.alpha || 0;
+      this.absoluteMode = true;
     }
-    // Fallback ke alpha meski tidak absolute (kurang akurat)
-    else if (event.alpha !== null) {
-      rawHeading = (360 - event.alpha) % 360;
-      // Tambahkan indikator tidak terkalibrasi
-      if (!this._notifiedAccuracy) {
-        this._notifiedAccuracy = true;
+    // 3. Fallback: event biasa tanpa absolute (misal desktop atau mobile lama)
+    else if (event.alpha !== null && !this.absoluteMode) {
+      // Gunakan alpha sebagai indikasi, tapi ini relatif terhadap orientasi awal
+      rawHeading = event.alpha;
+      // Beri tahu pengguna bahwa kompas tidak terkalibrasi
+      if (!this._notifiedNonAbsolute) {
+        this._notifiedNonAbsolute = true;
         const note = document.createElement('small');
-        note.textContent = ' (kalibrasi perangkat)';
+        note.textContent = ' (butuh kalibrasi)';
         note.style.color = '#ffcc00';
         if (this.directionEl) this.directionEl.appendChild(note);
       }
@@ -69,54 +107,76 @@ const Compass = {
 
     if (rawHeading === null || isNaN(rawHeading)) return;
 
-    this.heading = Math.round(rawHeading * 10) / 10; // satu desimal
+    this.heading = Math.round(rawHeading * 10) / 10;
     this.updateUI();
+
+    // Jika ini pertama kali mendapatkan heading valid, ubah status supported
+    if (!this._firstHeading) {
+      this._firstHeading = true;
+      this.supported = true;
+      const fb = document.getElementById('compass-fallback');
+      if (fb) fb.remove();
+      if (this.needle) this.needle.style.display = '';
+    }
   },
 
+  // ========== UPDATE UI ==========
   updateUI() {
     if (!this.supported) return;
 
     const heading = this.heading;
-    // Rotasi jarum (jarum menunjuk utara, tapi kompas berputar; kita putar compass-needle sebesar heading)
     if (this.needle) {
       this.needle.style.transform = `translateX(-50%) rotate(${heading}deg)`;
     }
 
-    // Heading derajat
     if (this.headingEl) {
-      this.headingEl.textContent = `${Math.round(heading)}°`;
+      this.headingEl.textContent = `${Math.round(heading)}° ${this.absoluteMode ? '' : '~'}`;
     }
 
-    // Arah mata angin
     const direction = this.compassDirection(heading);
     if (this.directionEl) {
       this.directionEl.textContent = direction;
     }
 
-    // Jika ada target dan posisi user, hitung indikator relatif
+    // Target info
     if (this.target && this.userPosition) {
       const bearingToTarget = this.calculateBearing(
         this.userPosition.lat, this.userPosition.lng,
         this.target.lat, this.target.lng
       );
       const relativeAngle = ((bearingToTarget - heading + 360) % 360);
-      // Konversi ke deskripsi arah relatif
       const desc = this.relativeDirectionDescription(relativeAngle);
       this.targetInfoEl.textContent = `${this.target.name}: ${desc}`;
       this.targetInfoEl.style.display = 'block';
 
-      // Tampilkan indikator di tepi kompas (rotate sesuai relativeAngle)
       if (this.targetIndicator) {
         this.targetIndicator.style.display = 'block';
         this.targetIndicator.style.transform = `translateX(-50%) rotate(${relativeAngle}deg) translateY(-85px)`;
       }
     } else {
-      // Sembunyikan info target
       this.targetInfoEl.style.display = 'none';
       if (this.targetIndicator) this.targetIndicator.style.display = 'none';
     }
   },
 
+  // ========== FALLBACK ==========
+  showFallback(msg) {
+    this.supported = false;
+    let fb = document.getElementById('compass-fallback');
+    if (!fb) {
+      fb = document.createElement('p');
+      fb.id = 'compass-fallback';
+      fb.style.color = 'var(--danger)';
+      fb.style.fontWeight = '500';
+      this.compassCard.appendChild(fb);
+    }
+    fb.textContent = msg;
+    if (this.needle) this.needle.style.display = 'none';
+    if (this.headingEl) this.headingEl.textContent = '--';
+    if (this.directionEl) this.directionEl.textContent = 'Tidak tersedia';
+  },
+
+  // ========== UTILITY ==========
   compassDirection(deg) {
     const dirs = [
       { min: 337.5, max: 360, text: 'Utara' },
@@ -145,7 +205,6 @@ const Compass = {
   },
 
   relativeDirectionDescription(angle) {
-    // angle: 0 = lurus depan, 90 = kanan, 180 = belakang, dst.
     const sectors = [
       [337.5, 360, 'lurus depan'],
       [0, 22.5, 'lurus depan'],

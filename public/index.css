@@ -232,9 +232,34 @@ body {
   margin: 16px 0;
   max-height: 60vh;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 8px; /* sedikit lebih lega untuk scrollbar */
 }
 
+/* ========== SCROLLBAR KUSTOM UNTUK MODAL ========== */
+#loc-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+#loc-list::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 12px 0; /* biar tidak nempel ke ujung modal */
+}
+
+#loc-list::-webkit-scrollbar-thumb {
+  background: var(--shadow-light);
+  border-radius: 10px;
+  border: 2px solid var(--card-bg); /* efek menyatu dengan background card */
+  box-shadow: inset 2px 2px 4px var(--shadow-dark),
+              inset -2px -2px 4px var(--shadow-light);
+  transition: background 0.2s;
+}
+
+#loc-list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Tombol lokasi */
 .btn-location-item {
   background: var(--bg);
   color: var(--text);

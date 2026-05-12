@@ -68,8 +68,8 @@ function render() {
     nameRow.className = 'flex-row';
     nameRow.innerHTML = `
       <input type="text" class="point-input" style="width:200px;" value="${loc.name}" placeholder="Nama lokasi" data-locidx="${locIdx}" data-action="rename">
-      <button class="btn btn-small" style="color: var(--accent);" data-action="highlight-location" data-locidx="${locIdx}">📍 Sorot</button>
-      <button class="btn btn-small btn-danger" data-action="delete-location" data-locidx="${locIdx}">🗑️ Hapus</button>
+      <button class="btn btn-small" style="color: var(--accent);" data-action="highlight-location" data-locidx="${locIdx}">Sorot</button>
+      <button class="btn btn-small btn-danger" data-action="delete-location" data-locidx="${locIdx}">Hapus</button>
     `;
     card.appendChild(nameRow);
 
