@@ -35,7 +35,7 @@ function loadData() {
   }
 
   // 2. Fallback dari file JSON (root project)
-  fetch('./location.json')
+  fetch('./locations.json')
     .then(res => {
       if (!res.ok) throw new Error('File not found');
       return res.json();
