@@ -25,21 +25,21 @@
 
     <!-- ====== KOMPAS CARD ====== -->
     <div class="card" id="compass-card">
-      <h3>Kompas Arah</h3>
       <div id="compass-container">
-        <div id="compass">
-          <div class="compass-ring">
-            <span class="dir-label north">N</span>
-            <span class="dir-label east">E</span>
-            <span class="dir-label south">S</span>
-            <span class="dir-label west">W</span>
+        <div id="compass-outer">
+          <div id="compass-rose">
+            <span class="dir-label dir-n">U</span>
+            <span class="dir-label dir-e">T</span>
+            <span class="dir-label dir-s">S</span>
+            <span class="dir-label dir-w">B</span>
           </div>
-          <div class="compass-needle"></div>
-          <div class="compass-target-indicator" style="display: none;"></div>
+          <div id="compass-arrow"></div>
         </div>
-        <div id="compass-heading">0°</div>
-        <div id="compass-direction">Utara</div>
-        <div id="compass-target-info" style="display: none;"></div>
+        <div id="compass-info">
+          <div class="info-row"><span>Latitude:</span><span id="compass-lat">--</span></div>
+          <div class="info-row"><span>Longitude:</span><span id="compass-lng">--</span></div>
+          <div class="info-row"><span>Direction:</span><span id="compass-heading">--°</span></div>
+        </div>
       </div>
     </div>
     <!-- ====== END KOMPAS ====== -->

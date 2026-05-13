@@ -1,8 +1,3 @@
-/* ==============================================
-   LOCATEUMN - ADMIN STYLES (admin.html)
-   ============================================== */
-
-/* ========== GLOBAL (ROOT, RESET) ========== */
 :root {
   --bg: #1e1e2f;
   --card-bg: #25253a;
@@ -35,22 +30,21 @@ body {
 
 .container {
   width: 100%;
-  max-width: 800px;           /* admin lebih lebar */
+  max-width: 800px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
-/* ========== HEADER ========== */
 .header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .logo {
-  width: 60px;                /* admin logo lebih kecil */
+  width: 60px;
   height: 60px;
   object-fit: contain;
   border-radius: 50%;
@@ -68,7 +62,6 @@ body {
   text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
-/* ========== CARD ========== */
 .card {
   background: var(--card-bg);
   border-radius: var(--radius);
@@ -77,10 +70,9 @@ body {
               -8px -8px 16px var(--shadow-light);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
-/* ========== BUTTONS ========== */
 .btn {
   background: var(--card-bg);
   border: none;
@@ -111,31 +103,12 @@ body {
   transform: translateY(2px);
 }
 
-.btn-primary {
-  color: var(--accent);
-}
-
-.btn-danger {
-  color: var(--danger);
-}
+.btn-primary { color: var(--accent); }
+.btn-danger { color: var(--danger); }
 
 .btn-small {
   padding: 8px 14px;
   font-size: 0.85rem;
-}
-
-.btn-icon {
-  background: transparent;
-  border: none;
-  color: var(--text);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 8px;
-  transition: background 0.2s;
-}
-
-.btn-icon:hover {
-  background: rgba(255,255,255,0.05);
 }
 
 .flex-row {
@@ -145,7 +118,6 @@ body {
   align-items: center;
 }
 
-/* ========== SPINNER (jika dibutuhkan admin, tetap disertakan) ========== */
 .spinner {
   display: inline-block;
   width: 20px;
@@ -160,10 +132,59 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* ========== DAFTAR LOKASI ========== */
+/* ========== ACCORDION ========== */
+.accordion {
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 8px 8px 16px var(--shadow-dark),
+              -8px -8px 16px var(--shadow-light);
+}
+
+.accordion-header {
+  width: 100%;
+  background: var(--card-bg);
+  border: none;
+  padding: 16px 20px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background var(--transition);
+}
+
+.accordion-header:hover {
+  background: #2a2a42;
+}
+
+.accordion-arrow {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.accordion.open .accordion-arrow {
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+  background: #1c1c30;
+  padding: 0 20px;
+}
+
+.accordion.open .accordion-body {
+  max-height: 2000px;
+  padding: 20px;
+}
+
+/* ========== DAFTAR LOKASI (MANUAL) ========== */
 .location-card {
   border: 1px solid rgba(255,255,255,0.08);
-  padding: 16px;
+  padding: 14px;
   border-radius: var(--radius);
   background: rgba(0,0,0,0.1);
 }
@@ -172,50 +193,48 @@ body {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .location-card .flex-row input[type="text"] {
-  flex: 1 1 200px;
+  flex: 1 1 180px;
 }
 
-/* Container titik (grid 2 kolom) */
 .points-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-top: 12px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-/* Baris titik individu */
 .point-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 10px;
+  border-radius: 10px;
   background: rgba(255,255,255,0.03);
   min-width: 0;
 }
 
 .point-row span {
-  font-size: 0.9rem;
-  min-width: 60px;
+  font-size: 0.85rem;
+  min-width: 55px;
 }
 
 .point-input {
   background: var(--bg);
   border: none;
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 7px 10px;
   color: var(--text);
   width: 100%;
   flex: 1;
   box-shadow:
     inset 2px 2px 4px var(--shadow-dark),
     inset -2px -2px 4px var(--shadow-light);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: all var(--transition);
 }
 
@@ -232,16 +251,77 @@ body {
               inset -4px -4px 8px var(--shadow-light);
 }
 
-/* ========== DRAWING TOOLS ========== */
+
+
+
+
+
+/* Accordion lokasi sekunder */
+.accordion-location {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.accordion-location-header {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: none;
+  padding: 14px 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background var(--transition);
+}
+
+.accordion-location-header:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+.accordion-location-header .accordion-arrow {
+  font-size: 1.2rem;
+  transition: transform 0.3s;
+}
+
+.accordion-location.open > .accordion-location-header .accordion-arrow {
+  transform: rotate(180deg);
+}
+
+.accordion-location-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease-out, padding 0.3s;
+  padding: 0 16px;
+  background: rgba(0,0,0,0.1);
+}
+
+.accordion-location.open > .accordion-location-body {
+  max-height: 800px; /* cukup besar untuk banyak titik */
+  padding: 16px;
+}
+
+/* Scroll di daftar lokasi */
+.scrollable-locations {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+
+
+
+
+
+
+/* ========== DRAW TOOLS ========== */
 #draw-tools {
   flex-direction: column;
   gap: 12px;
-}
-
-#draw-tools .flex-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
 }
 
 #draw-tools .btn:disabled {
@@ -252,7 +332,25 @@ body {
   transform: none;
 }
 
-/* ========== SCROLLBAR KUSTOM ========== */
+/* ========== GPS STATUS ========== */
+#gps-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: rgba(0,0,0,0.2);
+  padding: 10px;
+  border-radius: 10px;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+#gps-status span {
+  background: var(--bg);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* ========== SCROLLBAR ========== */
 #locations-list::-webkit-scrollbar {
   width: 6px;
 }
@@ -264,7 +362,7 @@ body {
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .points-container {
-    grid-template-columns: 1fr;   /* titik 1 kolom di mobile */
+    grid-template-columns: 1fr;
   }
 }
 
@@ -274,7 +372,7 @@ body {
     padding: 0 8px;
   }
   .point-input {
-    width: 80px;
+    width: 70px;
   }
 }
 
@@ -285,7 +383,7 @@ body {
   .point-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    gap: 4px;
   }
   .point-row span {
     min-width: auto;

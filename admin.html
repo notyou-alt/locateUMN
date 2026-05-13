@@ -5,42 +5,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin LocateUMN</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-  <!-- Leaflet Draw CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css">
   <link rel="stylesheet" href="admin/admin.css">
 </head>
 <body>
-  <div class="container" style="max-width: 700px;">
+  <div class="container">
     <header class="header">
-      <img src="assets/logo.png" alt="Logo" class="logo" style="width:60px; height:60px;">
-      <h1 class="title" style="font-size:1.8rem;">Admin Panel</h1>
+      <img src="assets/logo.png" alt="Logo" class="logo">
+      <h1 class="title">Admin Panel</h1>
     </header>
 
-    <div class="card" id="locations-container">
-      <h3>Daftar Lokasi</h3>
-      <div id="locations-list"></div>
-      <button class="btn btn-primary btn-small" id="btn-add-location">+ Tambah Lokasi</button>
-    </div>
-
-    <!-- MAP CONTAINER -->
-    <div class="card" style="padding: 0; overflow: hidden; border-radius: var(--radius);">
-      <div id="map" style="height: 500px; width: 100%;"></div>
-    </div>
-
-    <!-- DRAWING TOOLS CARD -->
-    <div class="card" id="draw-tools">
-      <h3>Draw Polygon</h3>
-      <div class="flex-row" style="gap: 10px; flex-wrap: wrap;">
-        <button class="btn btn-small" id="btn-draw-start">Buat Polygon</button>
-        <button class="btn btn-small btn-primary" id="btn-draw-save" disabled>Simpan Polygon</button>
-        <button class="btn btn-small" id="btn-draw-cancel" disabled>Batalkan Polygon</button>
-        <button class="btn btn-small btn-danger" id="btn-draw-clear" disabled>Hapus Polygon</button>
+    <!-- METODE 1: GAMBAR DI MAP -->
+    <div class="accordion">
+      <button class="accordion-header">
+        <span>Titik Berdasarkan Gambar di Map</span>
+        <span class="accordion-arrow">&#9662;</span>
+      </button>
+      <div class="accordion-body">
+        <div class="card" style="padding: 0; overflow: hidden; border-radius: var(--radius); margin-bottom: 16px;">
+          <div id="map" style="height: 450px; width: 100%;"></div>
+        </div>
+        <div class="card" id="draw-tools">
+          <h3>Draw Polygon</h3>
+          <div class="flex-row" style="gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-small" id="btn-draw-start">Buat Polygon</button>
+            <button class="btn btn-small btn-primary" id="btn-draw-save" disabled>Simpan Polygon</button>
+            <button class="btn btn-small" id="btn-draw-cancel" disabled>Batalkan</button>
+            <button class="btn btn-small btn-danger" id="btn-draw-clear" disabled>Hapus</button>
+          </div>
+          <small style="color: #aaa;">Klik pada peta untuk membuat titik, double-click untuk menutup polygon.</small>
+        </div>
       </div>
-      <small style="color: #aaa;">Klik pada peta untuk membuat titik, double-click untuk menutup polygon.</small>
     </div>
 
+    <!-- METODE 2: GPS LAPANGAN -->
+    <div class="accordion">
+      <button class="accordion-header">
+        <span>Titik Berdasarkan Lokasi Lapangan</span>
+        <span class="accordion-arrow">&#9662;</span>
+      </button>
+      <div class="accordion-body">
+        <div class="card" id="gps-field-card">
+          <div id="gps-status">
+            <span id="gps-lat">Lat: --</span>
+            <span id="gps-lng">Lng: --</span>
+            <span id="gps-accuracy">Akurasi: --</span>
+          </div>
+          <div class="flex-row" style="gap: 10px;">
+            <button class="btn btn-small" id="btn-gps-toggle">Mulai GPS</button>
+            <button class="btn btn-small btn-primary" id="btn-gps-save-point" disabled>Simpan Titik</button>
+            <button class="btn btn-small" id="btn-gps-undo" disabled>Hapus Terakhir</button>
+            <button class="btn btn-small btn-danger" id="btn-gps-reset" disabled>Reset</button>
+          </div>
+          <input type="text" id="gps-location-name" class="point-input" placeholder="Nama wilayah" style="width:100%; margin-top:8px;">
+          <button class="btn btn-small btn-primary" id="btn-gps-save-area" disabled>Simpan Wilayah</button>
+          <small id="gps-hint" style="color: #aaa;">Mode GPS belum aktif</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- METODE 3: MANUAL -->
+    <div class="accordion">
+      <button class="accordion-header">
+        <span>Titik Secara Manual</span>
+        <span class="accordion-arrow">&#9662;</span>
+      </button>
+      <div class="accordion-body">
+        <div class="card" id="locations-container">
+          <h3>Daftar Lokasi</h3>
+          <div id="locations-list" class="scrollable-locations"></div>
+          <button class="btn btn-primary btn-small" id="btn-add-location">+ Tambah Lokasi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AKSI BAWAH -->
     <div class="card" style="flex-direction: row; flex-wrap: wrap; gap: 12px;">
       <button class="btn btn-small" id="btn-export">Export JSON</button>
       <button class="btn btn-small" id="btn-import">Import JSON</button>
@@ -49,12 +89,11 @@
     </div>
   </div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <!-- Leaflet Draw JS -->
   <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
   <script src="admin/admin.js"></script>
   <script src="admin/map.js"></script>
   <script src="admin/draw.js"></script>
+  <script src="admin/gps-field.js"></script>
 </body>
 </html>

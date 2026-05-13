@@ -2,16 +2,13 @@
  * LocateUMN - Admin Logic (Client-side only)
  **********************************************/
 
-// Cek autentikasi
 if (!sessionStorage.getItem('adminAuth')) {
   window.location.href = 'index.html';
 }
 
-// Data disimpan di localStorage dengan key 'locateumn_data'
 const STORAGE_KEY = 'locateumn_data';
 let locations = [];
 
-// Elemen DOM
 const locationsListDiv = document.getElementById('locations-list');
 const btnAddLocation = document.getElementById('btn-add-location');
 const btnExport = document.getElementById('btn-export');
@@ -19,27 +16,15 @@ const btnImport = document.getElementById('btn-import');
 const importFileInput = document.getElementById('import-file');
 const btnLogout = document.getElementById('btn-logout');
 
-// ========== LOAD DATA ==========
 function loadData() {
-  // 1. LocalStorage dulu (prioritas utama)
   const saved = localStorage.getItem(STORAGE_KEY);
-
   if (saved) {
-    try {
-      locations = JSON.parse(saved);
-    } catch (e) {
-      locations = [];
-    }
+    locations = JSON.parse(saved);
     render();
     return;
   }
-
-  // 2. Fallback dari file JSON (root project)
-  fetch('./locations.json')
-    .then(res => {
-      if (!res.ok) throw new Error('File not found');
-      return res.json();
-    })
+  fetch('locations.json')
+    .then(res => res.json())
     .then(json => {
       locations = json.locations || [];
       saveToStorage();
@@ -55,69 +40,84 @@ function saveToStorage() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
 }
 
-// ========== RENDER UI ==========
+// ========== RENDER ACCORDION LOKASI ==========
 function render() {
   locationsListDiv.innerHTML = '';
   locations.forEach((loc, locIdx) => {
-    const card = document.createElement('div');
-    card.className = 'card location-card';
-    card.style.marginBottom = '12px';
+    // Accordion wrapper
+    const acc = document.createElement('div');
+    acc.className = 'accordion-location';
 
-    // Nama lokasi
-    const nameRow = document.createElement('div');
-    nameRow.className = 'flex-row';
-    nameRow.innerHTML = `
-      <input type="text" class="point-input" style="width:200px;" value="${loc.name}" placeholder="Nama lokasi" data-locidx="${locIdx}" data-action="rename">
+    // Header
+    const header = document.createElement('button');
+    header.className = 'accordion-location-header';
+    header.innerHTML = `
+      <span class="loc-name-text">${loc.name || 'Tanpa Nama'}</span>
+      <span class="accordion-arrow">&#9662;</span>
+    `;
+    // Klik header toggle buka/tutup
+    header.addEventListener('click', () => {
+      acc.classList.toggle('open');
+    });
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'accordion-location-body';
+
+    // Kontrol nama + hapus
+    const ctrlRow = document.createElement('div');
+    ctrlRow.className = 'flex-row';
+    ctrlRow.style.marginBottom = '12px';
+    ctrlRow.innerHTML = `
+      <input type="text" class="point-input" value="${loc.name}" placeholder="Nama lokasi" data-locidx="${locIdx}" data-action="rename" style="flex:1;">
       <button class="btn btn-small" style="color: var(--accent);" data-action="highlight-location" data-locidx="${locIdx}">Sorot</button>
       <button class="btn btn-small btn-danger" data-action="delete-location" data-locidx="${locIdx}">Hapus</button>
     `;
-    card.appendChild(nameRow);
+    body.appendChild(ctrlRow);
 
     // Titik-titik
-    const pointsDiv = document.createElement('div');
-    pointsDiv.style.display = 'flex';
-    pointsDiv.style.flexDirection = 'column';
-    pointsDiv.style.gap = '8px';
-
+    const pointsContainer = document.createElement('div');
+    pointsContainer.className = 'points-container';
     (loc.points || []).forEach((point, ptIdx) => {
       const row = document.createElement('div');
       row.className = 'point-row';
       row.innerHTML = `
-        <span style="font-size:0.9rem;">Titik ${ptIdx+1}</span>
+        <span>Titik ${ptIdx+1}</span>
         <input type="number" class="point-input" value="${point.lat}" step="any" data-locidx="${locIdx}" data-ptidx="${ptIdx}" data-coord="lat">
         <input type="number" class="point-input" value="${point.lng}" step="any" data-locidx="${locIdx}" data-ptidx="${ptIdx}" data-coord="lng">
-        <button class="btn btn-small btn-danger" data-action="delete-point" data-locidx="${locIdx}" data-ptidx="${ptIdx}">✕</button>
+        <button class="btn btn-small btn-danger" data-action="delete-point" data-locidx="${locIdx}" data-ptidx="${ptIdx}">X</button>
       `;
-      pointsDiv.appendChild(row);
+      pointsContainer.appendChild(row);
     });
 
-    // Tombol tambah titik
     const addPtBtn = document.createElement('button');
     addPtBtn.className = 'btn btn-small btn-primary';
     addPtBtn.textContent = '+ Tambah Titik';
     addPtBtn.dataset.action = 'add-point';
     addPtBtn.dataset.locidx = locIdx;
-    pointsDiv.appendChild(addPtBtn);
+    pointsContainer.appendChild(addPtBtn);
 
-    card.appendChild(pointsDiv);
-    locationsListDiv.appendChild(card);
+    body.appendChild(pointsContainer);
+    acc.appendChild(header);
+    acc.appendChild(body);
+    locationsListDiv.appendChild(acc);
   });
 
-  // Event delegation
   attachEvents();
 }
 
 function attachEvents() {
-  // Rename location (input event)
   document.querySelectorAll('input[data-action="rename"]').forEach(input => {
     input.addEventListener('input', (e) => {
       const idx = parseInt(e.target.dataset.locidx);
       locations[idx].name = e.target.value;
+      // Update teks nama di header accordion
+      const headerText = input.closest('.accordion-location').querySelector('.loc-name-text');
+      if (headerText) headerText.textContent = e.target.value || 'Tanpa Nama';
       saveToStorage();
     });
   });
 
-  // Edit point coordinate
   document.querySelectorAll('input[data-coord]').forEach(input => {
     input.addEventListener('input', (e) => {
       const locIdx = parseInt(e.target.dataset.locidx);
@@ -131,7 +131,6 @@ function attachEvents() {
     });
   });
 
-  // Delete location
   document.querySelectorAll('button[data-action="delete-location"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const idx = parseInt(e.target.dataset.locidx);
@@ -143,7 +142,6 @@ function attachEvents() {
     });
   });
 
-  // Delete point
   document.querySelectorAll('button[data-action="delete-point"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const locIdx = parseInt(e.target.dataset.locidx);
@@ -156,11 +154,9 @@ function attachEvents() {
     });
   });
 
-  // Add point
   document.querySelectorAll('button[data-action="add-point"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const locIdx = parseInt(e.target.dataset.locidx);
-      // Tambah titik baru dengan koordinat default (0,0)
       locations[locIdx].points.push({ lat: 0, lng: 0 });
       saveToStorage();
       render();
@@ -168,7 +164,6 @@ function attachEvents() {
   });
 }
 
-// ========== ADD NEW LOCATION ==========
 btnAddLocation.addEventListener('click', () => {
   const name = prompt('Nama lokasi baru:');
   if (name) {
@@ -186,7 +181,6 @@ btnAddLocation.addEventListener('click', () => {
   }
 });
 
-// ========== EXPORT JSON ==========
 btnExport.addEventListener('click', () => {
   const jsonStr = JSON.stringify({ locations }, null, 2);
   const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -200,10 +194,7 @@ btnExport.addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-// ========== IMPORT JSON ==========
-btnImport.addEventListener('click', () => {
-  importFileInput.click();
-});
+btnImport.addEventListener('click', () => importFileInput.click());
 
 importFileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
@@ -218,7 +209,7 @@ importFileInput.addEventListener('change', (e) => {
         render();
         alert('Data berhasil diimpor!');
       } else {
-        alert('Format JSON tidak valid. Harus memiliki properti "locations" (array).');
+        alert('Format JSON tidak valid.');
       }
     } catch (err) {
       alert('Gagal parsing JSON.');
@@ -228,11 +219,22 @@ importFileInput.addEventListener('change', (e) => {
   importFileInput.value = '';
 });
 
-// ========== LOGOUT ==========
 btnLogout.addEventListener('click', () => {
   sessionStorage.removeItem('adminAuth');
   window.location.href = 'index.html';
 });
 
-// Inisialisasi
+// Accordion utama (3 metode)
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.accordion-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const accordion = header.parentElement;
+      document.querySelectorAll('.accordion.open').forEach(open => {
+        if (open !== accordion) open.classList.remove('open');
+      });
+      accordion.classList.toggle('open');
+    });
+  });
+});
+
 loadData();
